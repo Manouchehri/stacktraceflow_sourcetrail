@@ -1,3 +1,6 @@
-[submodule "valgrind"]
-	path = valgrind
+[submodule "external/SourcetrailDB"]
+	path = external/SourcetrailDB
+	url = https://github.com/CoatiSoftware/SourcetrailDB/
+[submodule "external/valgrind"]
+	path = external/valgrind
 	url = https://github.com/Baranowski/valgrind_stacktraceflow
