@@ -19,7 +19,7 @@
 #include <iostream>
 
 #include "functiondirectory.h"
-#include "logic/funccall.h"
+#include "funccall.h"
 
 using namespace std;
 

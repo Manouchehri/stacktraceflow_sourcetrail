@@ -16,9 +16,9 @@
  You should have received a copy of the GNU General Public License
  along with stacktraceflow. If not, see <https://www.gnu.org/licenses/>.
  */
-#include "logic/funccall.h"
-#include "logic/datafiles.h"
-#include "logic/functiondirectory.h"
+#include "funccall.h"
+#include "datafiles.h"
+#include "functiondirectory.h"
 
 #include <cstdio>
 #include <string>

@@ -17,7 +17,7 @@
  along with stacktraceflow. If not, see <https://www.gnu.org/licenses/>.
  */
 #include "funccall.h"
-#include "logic/functiondirectory.h"
+#include "functiondirectory.h"
 
 std::string FuncCall::getName() const
 {

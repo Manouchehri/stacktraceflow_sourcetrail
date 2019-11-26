@@ -27,8 +27,8 @@
 #include <regex>
 #include <endian.h>
 
-#include "logic/funccall.h"
-#include "logic/functiondirectory.h"
+#include "funccall.h"
+#include "functiondirectory.h"
 
 class ParsingError: public std::exception {
 public:
