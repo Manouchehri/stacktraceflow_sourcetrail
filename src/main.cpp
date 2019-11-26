@@ -25,6 +25,13 @@
 #include <map>
 #include <set>
 #include <tuple>
+#include <string_view>
+#include <libgen.h>
+#include <cassert>
+#include <unistd.h>
+
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/filesystem/convenience.hpp>
 
 #include <SourcetrailDBWriter.h>
 #include <SourceRange.h>
@@ -33,13 +40,13 @@
 using namespace sourcetrail;
 using namespace std;
 
-class WriterProxy {
+class SdbWriterProxy {
 public:
-    WriterProxy(const char *path) {
+    SdbWriterProxy(const char *path) {
         writer.open(path);
         writer.beginTransaction();
     }
-    ~WriterProxy() {
+    ~SdbWriterProxy() {
         writer.commitTransaction();
         writer.close();
     }
@@ -112,11 +119,10 @@ private:
     set<pair<FunctionSerialization, FunctionSerialization>> calls;
 };
 
-int main(int argc, char *argv[])
-{
+void translate(const char *stacktraceflow_input, const char *sourcetraildb_output) {
     try {
-        FuncCall functionTree = readRecordFile(argv[1]);
-        WriterProxy writer(argv[2]);
+        FuncCall functionTree = readRecordFile(stacktraceflow_input);
+        SdbWriterProxy writer(sourcetraildb_output);
         for (auto it = functionTree.children.begin(); it != functionTree.children.end(); ++it) {
             writer.recursivelyRecord(**it);
         }
@@ -124,4 +130,47 @@ int main(int argc, char *argv[])
         fprintf(stderr, "%s\n", e.what());
         exit(1);
     }
+}
+
+void run(char *my_filename, int argc, char *argv[]) {
+    boost::filesystem::path my_dir =
+        boost::dll::program_location().parent_path();
+    string valgrindPath = (my_dir / "bin" / "valgrind").native();
+    pid_t my_pid = getpid();
+    assert(argc > 0);
+    assert(argv[0]);
+    boost::filesystem::create_directories("stacktraceflow_record");
+    boost::filesystem::path stacktraceflowPrefix =
+        boost::filesystem::path("stacktraceflow_record") / 
+        (boost::filesystem::basename(argv[0]) + "." + to_string(my_pid));
+    string valgrindCmd = valgrindPath +
+        " --tool=callgrind" +
+        " --stacktraceflow-prefix=" + stacktraceflowPrefix.native();
+    for (; *argv; ++argv) {
+        valgrindCmd += " "s + *argv;
+    }
+    printf("Executing '%s'\n", valgrindCmd.c_str());
+    system(valgrindCmd.c_str());
+    printf("Success\n");
+}
+
+void print_usage() {
+    printf(
+"Usage:\n"
+"\n"
+"    stacktraceflow --run SOME_PROGRAM [ SOME_ARG1 [ SOME_ARG2 [ .. ] ] ]\n"
+"This command will record execution of SOME_PROGRAM and write the data to the\n"
+"(possibly newly created) stacktraceflow_record subdirectory\n"
+    );
+}
+
+int main(int argc, char *argv[]) {
+    if (argc == 4 && argv[1] == "--translate"sv) {
+        translate(argv[2], argv[3]);
+    } else if (argc > 2 && argv[1] == "--run"sv) {
+        run(argv[0], argc - 2, argv + 2);
+    } else {
+        print_usage();
+    }
+    return 0;
 }
