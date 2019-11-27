@@ -84,12 +84,12 @@ public:
                       , (int)call.getLine()
                       , 1
                       , (int)call.getLine()
-                      , 999 });
+                      , 1 });
         SourceRange location;
         location.fileId = fileId;
         location.startLine = location.endLine = (int)call.getLine();
         location.startColumn = 1;
-        location.endColumn = 999;
+        location.endColumn = 1;
         writer.recordSymbolLocation(symbolId, location);
         functionToId.emplace(functionSer, symbolId);
         return symbolId;
@@ -155,18 +155,24 @@ void run(char *my_filename, int argc, char *argv[]) {
     for (; *argv; ++argv) {
         valgrindCmd += " "s + *argv;
     }
-    printf("Executing '%s'\n", valgrindCmd.c_str());
+    printf("Executing:\n    %s\n\n", valgrindCmd.c_str());
     system(valgrindCmd.c_str());
     printf("Success\n");
 }
 
 void print_usage() {
     printf(
-"Usage:\n"
+"Welcome to stacktraceflow. To get started, run:\n"
 "\n"
-"    stacktraceflow --run SOME_PROGRAM [ SOME_ARG1 [ SOME_ARG2 [ .. ] ] ]\n"
-"This command will record execution of SOME_PROGRAM and write the data to the\n"
-"(possibly newly created) stacktraceflow_record subdirectory\n"
+"    stacktraceflow --run PROGRAM [ ARG1 [ ARG2 [ .. ] ] ]\n"
+"\n"
+"This command will record execution of PROGRAM with the given arguments and\n"
+"write the data to the (possibly newly created) stacktraceflow_record\n"
+"subdirectory.\n"
+"\n"
+"For best results, PROGRAM should be debug version of your program. I.e., it\n"
+"should contain debug symbols, and ideally also be built without\n"
+"optimizations.\n"
     );
 }
 
