@@ -64,21 +64,7 @@ public:
                 return *this;
             }
             assert(other.isValid());
-            if (isValid()) {
-                if (name == other.name &&
-                        declFile == other.declFile &&
-                        lineNum == other.lineNum
-                ) {
-                    std::cerr << "Overwriting Entry with an identical one. "
-                              << "Probably duplicate in the dir file." << std::endl;
-                } else {
-                    std::cerr << "Overwriting Entry with an DIFFERENT one. "
-                              << "This is a bug." << std::endl;
-                }
-                assert(treeNodes.empty());
-                treeNodes = std::move(other.treeNodes);
-                return *this;
-            }
+            assert(!isValid());
             std::swap(name, other.name);
             std::swap(declFile, other.declFile);
             lineNum = other.lineNum;
