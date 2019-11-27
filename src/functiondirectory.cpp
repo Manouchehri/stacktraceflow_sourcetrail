@@ -61,9 +61,6 @@ FuncCall *FunctionDirectory::addFunctionCall(uint32_t number) {
     return functions[number].treeNodes.back().get();
 }
 
-const FunctionDirectory::SearchIterator FunctionDirectory::SearchIterator::end =
-    FunctionDirectory::SearchIterator();
-
 bool FunctionDirectory::Entry::FuncCallIsActive::operator()(FuncCall *call) const {
     assert(call != nullptr);
     return call->isActive();
