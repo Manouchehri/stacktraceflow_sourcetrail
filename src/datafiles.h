@@ -52,12 +52,22 @@ public:
     const uint32_t found;
 };
 
+class ExtensionError: public std::exception {
+public:
+    ExtensionError(const std::string &_path)
+        : path(_path)
+    { }
+    const std::string &getPath() const { return path; }
+
+private:
+    const std::string path;
+};
+
 std::string recordPathToDirectoryPath(const std::string& recordPath) {
     std::string result = recordPath;
     size_t extensionPos = result.find(".stfr.");
     if (extensionPos == std::string::npos) {
-        throw ParsingError("Record filename '" + recordPath + "' does not end with " +
-                           ".stfr.[thread_number]");
+        throw ExtensionError(recordPath);
     }
     result.replace(extensionPos, std::string::npos, ".stfd");
     return result;

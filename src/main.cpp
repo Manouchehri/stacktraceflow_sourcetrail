@@ -126,6 +126,9 @@ void translate(const char *stacktraceflow_input, const char *sourcetraildb_outpu
         for (auto it = functionTree.children.begin(); it != functionTree.children.end(); ++it) {
             writer.recursivelyRecord(**it);
         }
+    } catch(ExtensionError &e) {
+        fprintf(stderr, "File %s has unsupported extension. Skipping.\n",
+                e.getPath().c_str());
     } catch(ParsingError &e) {
         fprintf(stderr, "%s\n", e.what());
         exit(1);
