@@ -19,6 +19,8 @@
 #include "funccall.h"
 #include "functiondirectory.h"
 
+#include <cassert>
+
 std::string FuncCall::getName() const
 {
     return FunctionDirectory::get().getEntry(number).getName();
@@ -47,4 +49,26 @@ void FuncCall::setParent(FuncCall *value)
 size_t FuncCall::getSeqNum() const
 {
     return seqNum;
+}
+
+void FuncCall::remove() {
+    assert(parent != nullptr);
+    auto myIterator = std::find(parent->children.begin(), parent->children.end(), this);
+    assert(myIterator != parent->children.end());
+    auto nextSibling = parent->children.erase(myIterator);
+    for (FuncCall *child: children) {
+        child->parent = parent;
+    }
+    parent->children.insert(nextSibling, children.begin(), children.end());
+    parent = nullptr;
+    children.clear();
+}
+
+size_t FuncCall::leftSiblingsCount() const {
+    if (parent == nullptr) {
+        return 0;
+    }
+    auto myIterator = std::find(parent->children.begin(), parent->children.end(), this);
+    assert(myIterator != parent->children.end());
+    return myIterator - parent->children.begin();
 }

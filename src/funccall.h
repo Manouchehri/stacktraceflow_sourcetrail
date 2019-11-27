@@ -20,10 +20,7 @@
 #define FUNCCALL_H
 
 #include <vector>
-#include <memory>
 #include <string>
-#include <algorithm>
-#include <cassert>
 
 class FuncCall
 {
@@ -49,18 +46,6 @@ public:
     FuncCall& operator=(const FuncCall&) = delete;
     FuncCall& operator=(FuncCall&&) = delete;
 
-    void addChild(FuncCall* child) {
-        children.push_back(child);
-        children.back()->parent = this;
-    }
-
-    FuncCall *child(size_t idx) {
-        if (idx < children.size()) {
-            return children[idx];
-        }
-        return nullptr;
-    }
-
     std::string getName() const;
 
     std::string getPath() const;
@@ -78,34 +63,28 @@ public:
         return children.size();
     }
 
-    size_t leftSiblings() const {
-        if (parent == nullptr) {
-            return 0;
-        }
-        auto myIterator = std::find(parent->children.begin(), parent->children.end(), this);
-        assert(myIterator != parent->children.end());
-        return myIterator - parent->children.begin();
-    }
-
-    void remove() {
-        assert(parent != nullptr);
-        auto myIterator = std::find(parent->children.begin(), parent->children.end(), this);
-        assert(myIterator != parent->children.end());
-        auto nextSibling = parent->children.erase(myIterator);
-        for (FuncCall *child: children) {
-            child->parent = parent;
-        }
-        parent->children.insert(nextSibling, children.begin(), children.end());
-        parent = nullptr;
-        children.clear();
-    }
+    size_t leftSiblingsCount() const;
 
     size_t getSeqNum() const;
+
+    void remove();
+
+    void addChild(FuncCall* child) {
+        children.push_back(child);
+        children.back()->parent = this;
+    }
+
+    FuncCall *child(size_t idx) {
+        if (idx < children.size()) {
+            return children[idx];
+        }
+        return nullptr;
+    }
 
 private:
     uint32_t number;
     size_t seqNum;
-public:
+public: //TODO: make private
     std::vector<FuncCall*> children;
 private:
     FuncCall *parent;
