@@ -133,13 +133,16 @@ void translate(const char *stacktraceflow_input, const char *sourcetraildb_outpu
 }
 
 void run(char *my_filename, int argc, char *argv[]) {
+    assert(argc > 0);
+    assert(argv[0]);
+    assert(argv[0][0]);
+
+    boost::filesystem::create_directories("stacktraceflow_record");
+
+    pid_t my_pid = getpid();
     boost::filesystem::path my_dir =
         boost::dll::program_location().parent_path();
     string valgrindPath = (my_dir / "bin" / "valgrind").native();
-    pid_t my_pid = getpid();
-    assert(argc > 0);
-    assert(argv[0]);
-    boost::filesystem::create_directories("stacktraceflow_record");
     boost::filesystem::path stacktraceflowPrefix =
         boost::filesystem::path("stacktraceflow_record") / 
         (boost::filesystem::basename(argv[0]) + "." + to_string(my_pid));
