@@ -25,7 +25,7 @@ using namespace std;
 
 void StackTraceFlowReader::read(const char* input_path) {
     readDirectoryFile(recordPathToDirectoryPath(input_path));
-    FuncCall result(0, 0);
+    // TODO: get read of iostream
     std::ifstream recordStream(input_path, std::ifstream::binary | std::ifstream::in);
     while (true) {
         char sign;
@@ -37,7 +37,7 @@ void StackTraceFlowReader::read(const char* input_path) {
             throw ParsingError("Expected '+' in record file but found '" +
                                std::string(1, sign) + "'");
         }
-        parseFunctionCall(recordStream, result);
+        parseFunctionCall(recordStream, STACKTRACEFLOW_INVALID_ID);
     }
     return result;
 }
@@ -69,25 +69,28 @@ void StackTraceFlowReader::readDirectoryFile(const string& path) {
     }
 }
 
-void StackTraceFlowReader::parseFunctionCall(std::ifstream &recordStream, FuncCall &parent) {
+void StackTraceFlowReader::parseFunctionCall(std::ifstream &recordStream, StackTraceFlowId parent) {
     static_assert(is_same_v<uint32_t, StackTraceFlowId>);
-    uint32_t funcNumber;
-    recordStream.read(reinterpret_cast<char *>(&funcNumber), sizeof(funcNumber));
-    funcNumber = le32toh(funcNumber);
-    FuncCall *currentCall= FunctionDirectory::get().addFunctionCall(funcNumber);
-    parent.addChild(currentCall);
+    uint32_t func_number;
+    recordStream.read(reinterpret_cast<char *>(&func_number), sizeof(func_number));
+    func_number = le32toh(func_number);
+    if (parent != STACKTRACEFLOW_INVALID_ID) {
+        add_call(parent, func_number);
+    }
 
     char sign;
     recordStream.read(&sign, 1);
+    // TODO: make the signs a global constant
     while (sign == '+') {
-        parseFunctionCall(recordStream, *currentCall);
+        parseFunctionCall(recordStream, func_number);
         recordStream.read(&sign, 1);
     }
     assert(sign == '-');
-    uint32_t exitFuncNumber;
-    recordStream.read(reinterpret_cast<char *>(&exitFuncNumber), sizeof(exitFuncNumber));
-    exitFuncNumber = le32toh(exitFuncNumber);
-    if (exitFuncNumber != funcNumber) {
-        throw NumberMismatchError(funcNumber, exitFuncNumber);
+    static_assert(is_same_v<uint32_t, StackTraceFlowId>);
+    uint32_t exit_func_number;
+    recordStream.read(reinterpret_cast<char *>(&exit_func_number), sizeof(exit_func_number));
+    exit_func_number = le32toh(exit_func_number);
+    if (exit_func_number != func_number) {
+        throw NumberMismatchError(func_number, exit_func_number);
     }
 }

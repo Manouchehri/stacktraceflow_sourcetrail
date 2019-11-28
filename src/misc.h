@@ -19,7 +19,15 @@
 #ifndef MISC_H
 #define MISC_H
 
+#include <limits>
+
 using StackTraceFlowId = uint32_t;
 using SourcetrailId = int;
+
+constexpr static StackTraceFlowId STACKTRACEFLOW_INVALID_ID =
+    std::numeric_limits<StackTraceFlowId>::max();
+
+constexpr static SourcetrailId SOURCETRAIL_INVALID_ID =
+    std::numeric_limits<SourcetrailId>::min();
 
 #endif // STACKTRACEFLOWREADER_H
