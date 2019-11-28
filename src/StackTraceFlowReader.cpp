@@ -27,23 +27,17 @@ void StackTraceFlowReader::read(const char* input_path) {
     readDirectoryFile(recordPathToDirectoryPath(input_path));
     FuncCall result(0, 0);
     std::ifstream recordStream(input_path, std::ifstream::binary | std::ifstream::in);
-    try {
-        while (true) {
-            char sign;
-            recordStream.read(&sign, 1);
-            if (recordStream.eof()) {
-                break;
-            }
-            if (sign != '+') {
-                throw ParsingError("Expected '+' in record file but found '" +
-                                   std::string(1, sign) + "'");
-            }
-            parseFunctionCall(recordStream, result);
+    while (true) {
+        char sign;
+        recordStream.read(&sign, 1);
+        if (recordStream.eof()) {
+            break;
         }
-    } catch (NumberMismatchError &e) {
-        fprintf(stderr, "Record file is malformed. This is a bug. Found return "
-                "from function number %u while %u was expected. Stopping "
-                "parsing prematurely.", e.found, e.expected);
+        if (sign != '+') {
+            throw ParsingError("Expected '+' in record file but found '" +
+                               std::string(1, sign) + "'");
+        }
+        parseFunctionCall(recordStream, result);
     }
     return result;
 }

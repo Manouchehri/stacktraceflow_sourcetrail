@@ -141,6 +141,10 @@ try {
 } catch(ParsingError &e) {
     fprintf(stderr, "%s\n", e.what());
     exit(1);
+} catch (NumberMismatchError &e) {
+    fprintf(stderr, "Record file is malformed. This is a bug. Found return "
+            "from function number %u while %u was expected. Stopping "
+            "parsing prematurely.", e.found, e.expected);
 }
 }
 
