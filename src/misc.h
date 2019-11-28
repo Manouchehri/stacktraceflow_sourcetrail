@@ -20,6 +20,7 @@
 #define MISC_H
 
 #include <limits>
+#include <cstdint>
 
 using StackTraceFlowId = uint32_t;
 using SourcetrailId = int;

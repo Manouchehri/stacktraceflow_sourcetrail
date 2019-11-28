@@ -40,9 +40,8 @@ INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
 add_executable(stacktraceflow
     src/main.cpp
-    src/funccall.cpp
-    src/functiondirectory.cpp
-    src/datafiles.cpp
+    src/StackTraceFlowReader.cpp
+    src/StfToSdbTranslator.cpp
 )
 
 list(APPEND EXTRA_LIBS -pthread)

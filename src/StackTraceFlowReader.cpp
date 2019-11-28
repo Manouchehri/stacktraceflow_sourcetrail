@@ -18,8 +18,11 @@
  */
 
 #include "StackTraceFlowReader.h"
+#include "Function.h"
 
+#include <regex>
 #include <string>
+#include <cassert>
 
 using namespace std;
 
@@ -39,7 +42,6 @@ void StackTraceFlowReader::read(const char* input_path) {
         }
         parseFunctionCall(recordStream, STACKTRACEFLOW_INVALID_ID);
     }
-    return result;
 }
 
 string StackTraceFlowReader::recordPathToDirectoryPath(const string& recordPath) {

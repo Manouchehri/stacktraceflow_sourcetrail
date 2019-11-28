@@ -16,10 +16,10 @@
  You should have received a copy of the GNU General Public License
  along with stacktraceflow. If not, see <https://www.gnu.org/licenses/>.
  */
-#include "funccall.h"
-#include "datafiles.h"
-#include "functiondirectory.h"
 #include "misc.h"
+#include "StfToSdbTranslator.h"
+#include "StackTraceFlowReader.h"
+#include "Function.h"
 
 #include <cstdio>
 #include <string>
@@ -64,60 +64,36 @@ public:
         return result;
     }
 
-    static FunctionSerialization functionSerialize(const FunctionDirectory::Entry &function) {
-        return {function.getName(), function.getDeclFile(), function.getLineNum()};
-    }
-
-    static FunctionSerialization functionSerialize(const FuncCall &call) {
-        return {call.getName(), call.getPath(), call.getLine()};
-    }
-
-    int getFunctionId(const FuncCall &call) {
-        auto functionSer = functionSerialize(call);
-        auto it = functionToId.find(functionSer);
-        if (it != functionToId.end()) {
-            return it->second;
-        }
-        int symbolId = writer.recordSymbol({"::", { {"", call.getName(), ""} } });
-        int fileId = getFileId(call.getPath());
+    int write_function(const Function& func) {
+        int symbolId = writer.recordSymbol({"::", { {"", func.get_name(), ""} } });
+        int fileId = getFileId(func.get_def_file_path());
         writer.recordSymbolScopeLocation(
             symbolId, { fileId
-                      , (int)call.getLine()
+                      , (int)func.get_line()
                       , 1
-                      , (int)call.getLine()
+                      , (int)func.get_line()
                       , 1 });
         SourceRange location;
         location.fileId = fileId;
-        location.startLine = location.endLine = (int)call.getLine();
+        location.startLine = location.endLine = (int)func.get_line();
         location.startColumn = 1;
         location.endColumn = 1;
         writer.recordSymbolLocation(symbolId, location);
-        functionToId.emplace(functionSer, symbolId);
         return symbolId;
     }
     
-    void recordCall(const FuncCall &source, const FuncCall &target) {
-        const bool isNew =
-            calls.emplace(functionSerialize(source), functionSerialize(target)).second;
+    void write_call(SourcetrailId source, SourcetrailId target) {
+        const bool isNew = calls.emplace(source, target).second;
         if (!isNew) {
             return;
         }
-        writer.recordReference(getFunctionId(source), getFunctionId(target),
-                               ReferenceKind::CALL);
-    }
-
-    void recursivelyRecord(const FuncCall &call) {
-        for (const auto &childPtr: call.children) {
-            recordCall(call, *childPtr);
-            recursivelyRecord(*childPtr);
-        }
+        writer.recordReference(source, target, ReferenceKind::CALL);
     }
 
 private:
     SourcetrailDBWriter writer;
     map<string, int> fileToId;
-    map<FunctionSerialization, int> functionToId;
-    set<pair<FunctionSerialization, FunctionSerialization>> calls;
+    set<pair<SourcetrailId, SourcetrailId>> calls;
 };
 
 void translate(const char *stacktraceflow_input, const char *sourcetraildb_output) {
@@ -126,12 +102,12 @@ try {
     SdbWriterProxy writer(sourcetraildb_output);
     auto add_func =
         [&writer, &translator](StackTraceFlowId number, const Function &func) {
-            SourcetrailId sourcetraildbId = writer.addFunction(func);
+            SourcetrailId sourcetraildbId = writer.write_function(func);
             translator.add(number, sourcetraildbId);
         };
     auto add_call =
         [&writer, &translator](StackTraceFlowId sourceNumber, StackTraceFlowId targetNumber) {
-            writer.addCall(translator[sourceNumber], translator[targetNumber]);
+            writer.write_call(translator[sourceNumber], translator[targetNumber]);
         };
     StackTraceFlowReader reader(move(add_func), move(add_call));
     reader.read(stacktraceflow_input);

@@ -25,6 +25,8 @@
 
 class StfToSdbTranslator {
 public:
+    StfToSdbTranslator() = default;
+
     StfToSdbTranslator(const StfToSdbTranslator&) = delete;
     StfToSdbTranslator(StfToSdbTranslator&&) = delete;
     StfToSdbTranslator& operator=(const StfToSdbTranslator&) = delete;

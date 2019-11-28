@@ -24,11 +24,9 @@
 #include <functional>
 #include <exception>
 #include <string>
+#include <fstream> // TODO: get rid of this
 
 class Function;
-namespace std {
-    class ifstream;
-};
 
 class StackTraceFlowReader {
 public:
@@ -50,7 +48,7 @@ public:
 private:
     static std::string recordPathToDirectoryPath(const std::string& recordPath);
     void readDirectoryFile(const std::string& path);
-    void parseFunctionCall(std::ifstream &recordStream, FuncCall &parent);
+    void parseFunctionCall(std::ifstream &recordStream, StackTraceFlowId);
 
     AddFunctionCallback add_function;
     AddCallCallback add_call;
