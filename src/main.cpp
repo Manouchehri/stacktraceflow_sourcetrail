@@ -19,6 +19,7 @@
 #include "funccall.h"
 #include "datafiles.h"
 #include "functiondirectory.h"
+#include "misc.h"
 
 #include <cstdio>
 #include <string>
@@ -120,19 +121,27 @@ private:
 };
 
 void translate(const char *stacktraceflow_input, const char *sourcetraildb_output) {
-    try {
-        FuncCall functionTree = readRecordFile(stacktraceflow_input);
-        SdbWriterProxy writer(sourcetraildb_output);
-        for (auto it = functionTree.children.begin(); it != functionTree.children.end(); ++it) {
-            writer.recursivelyRecord(**it);
-        }
-    } catch(ExtensionError &e) {
-        fprintf(stderr, "File %s has unsupported extension. Skipping.\n",
-                e.getPath().c_str());
-    } catch(ParsingError &e) {
-        fprintf(stderr, "%s\n", e.what());
-        exit(1);
-    }
+try {
+    StfToSdbTranslator translator;
+    SdbWriterProxy writer(sourcetraildb_output);
+    auto add_func =
+        [&writer, &translator](StackTraceFlowId number, const Function &func) {
+            SourcetrailId sourcetraildbId = writer.addFunction(func);
+            translator.add(number, sourcetraildbId);
+        };
+    auto add_call =
+        [&writer, &translator](StackTraceFlowId sourceNumber, StackTraceFlowId targetNumber) {
+            writer.addCall(translator[sourceNumber], translator[targetNumber]);
+        };
+    StackTraceFlowReader reader(move(add_func), move(add_call));
+    reader.read(stacktraceflow_input);
+} catch(ExtensionError &e) {
+    fprintf(stderr, "File %s has unsupported extension. Skipping.\n",
+            e.getPath().c_str());
+} catch(ParsingError &e) {
+    fprintf(stderr, "%s\n", e.what());
+    exit(1);
+}
 }
 
 void run(char *my_filename, int argc, char *argv[]) {
@@ -157,7 +166,7 @@ void run(char *my_filename, int argc, char *argv[]) {
     }
     printf("Executing:\n    %s\n\n", valgrindCmd.c_str());
     system(valgrindCmd.c_str());
-    printf("Success\n");
+    printf("Success\n"); // TODO: was it, really?
 }
 
 void print_usage() {

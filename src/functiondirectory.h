@@ -95,39 +95,10 @@ public:
         void removeCalls();
 
     private:
-        struct UniquePtrGet {
-            FuncCall* operator()(const std::unique_ptr<FuncCall> &ptr) const {
-                return ptr.get();
-            }
-        };
-        struct FuncCallIsActive {
-            bool operator()(FuncCall *call) const;
-        };
-
-    public:
-        using CallsIterator = boost::transform_iterator<
-            UniquePtrGet,
-            std::vector<std::unique_ptr<FuncCall>>::const_iterator>;
-        CallsIterator callsBegin() {
-            return boost::make_transform_iterator(treeNodes.begin(), UniquePtrGet());
-        }
-        CallsIterator callsEnd() {
-            return boost::make_transform_iterator(treeNodes.end(), UniquePtrGet());
-        }
-
-        using ActiveCallsIterator = boost::filter_iterator<FuncCallIsActive, CallsIterator>;
-        ActiveCallsIterator activeCallsBegin() {
-            return boost::make_filter_iterator(FuncCallIsActive(), callsBegin(), callsEnd());
-        }
-        ActiveCallsIterator activeCallsEnd() {
-            return boost::make_filter_iterator(FuncCallIsActive(), callsEnd(), callsEnd());
-        }
-    private:
         friend class FunctionDirectory;
         std::string name;
         std::string declFile;
         uint32_t lineNum = 0;
-        std::vector<std::unique_ptr<FuncCall>> treeNodes;
     };
     using iterator = std::vector<Entry>::iterator;
 
