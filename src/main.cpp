@@ -19,15 +19,8 @@
 #include "misc.h"
 #include "StfToSdbTranslator.h"
 #include "StackTraceFlowReader.h"
-#include "Function.h"
+#include "SdbWriterProxy.h"
 
-#include <cstdio>
-#include <string>
-#include <map>
-#include <set>
-#include <tuple>
-#include <string_view>
-#include <libgen.h>
 #include <cassert>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -35,67 +28,9 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/convenience.hpp>
 
-#include <SourcetrailDBWriter.h>
-#include <SourceRange.h>
-#include <ReferenceKind.h>
-
-using namespace sourcetrail;
 using namespace std;
 
-class SdbWriterProxy { //TODO: separate file
-public:
-    SdbWriterProxy(const char *path) {
-        writer.open(path);
-        writer.beginTransaction();
-    }
-    ~SdbWriterProxy() {
-        writer.commitTransaction();
-        writer.close();
-    }
-
-    using FunctionSerialization = tuple<string, string, int>;
-
-    int getFileId(const std::string &filename) {
-        auto it = fileToId.find(filename);
-        if (it != fileToId.end()) {
-            return it->second;
-        }
-        int result = writer.recordFile(filename);
-        fileToId.emplace(filename, result);
-        return result;
-    }
-
-    int write_function(const Function& func) {
-        int symbolId = writer.recordSymbol({"::", { {"", func.get_name(), ""} } });
-        int fileId = getFileId(func.get_def_file_path());
-        writer.recordSymbolScopeLocation(
-            symbolId, { fileId
-                      , (int)func.get_line()
-                      , 1
-                      , (int)func.get_line()
-                      , 1 });
-        SourceRange location;
-        location.fileId = fileId;
-        location.startLine = location.endLine = (int)func.get_line();
-        location.startColumn = 1;
-        location.endColumn = 1;
-        writer.recordSymbolLocation(symbolId, location);
-        return symbolId;
-    }
-    
-    void write_call(SourcetrailId source, SourcetrailId target) {
-        const bool isNew = calls.emplace(source, target).second;
-        if (!isNew) {
-            return;
-        }
-        writer.recordReference(source, target, ReferenceKind::CALL);
-    }
-
-private:
-    SourcetrailDBWriter writer;
-    map<string, int> fileToId;
-    set<pair<SourcetrailId, SourcetrailId>> calls;
-};
+class Function;
 
 void translate(const char *stacktraceflow_input, const char *sourcetraildb_output) {
 try {

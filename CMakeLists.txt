@@ -42,6 +42,7 @@ add_executable(stacktraceflow
     src/main.cpp
     src/StackTraceFlowReader.cpp
     src/StfToSdbTranslator.cpp
+    src/SdbWriterProxy.cpp
 )
 
 list(APPEND EXTRA_LIBS -pthread)
