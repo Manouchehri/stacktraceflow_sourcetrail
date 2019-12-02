@@ -30,6 +30,7 @@
 #include <libgen.h>
 #include <cassert>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -41,7 +42,7 @@
 using namespace sourcetrail;
 using namespace std;
 
-class SdbWriterProxy {
+class SdbWriterProxy { //TODO: separate file
 public:
     SdbWriterProxy(const char *path) {
         writer.open(path);
@@ -145,8 +146,14 @@ void run(char *my_filename, int argc, char *argv[]) {
         valgrindCmd += " "s + *argv;
     }
     printf("Executing:\n    %s\n\n", valgrindCmd.c_str());
-    system(valgrindCmd.c_str());
-    printf("Success\n"); // TODO: was it, really?
+    int valgrind_exit_code = system(valgrindCmd.c_str());
+    if (WEXITSTATUS(valgrind_exit_code)) { // TODO: make platform-independent
+        fprintf(stderr, "The Valgrind command failed. The data recorded might "
+                "be still usable but is most likely incomplete.\n");
+    } else {
+        printf("Success\n");
+        // TODO: print --translate usage
+    }
 }
 
 void print_usage() {
