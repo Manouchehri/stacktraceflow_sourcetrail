@@ -26,6 +26,9 @@
 
 using namespace std;
 
+constexpr char CALL_SIGN = '+';
+constexpr char RET_SIGN = '-';
+
 void StackTraceFlowReader::read(const char* input_path) {
     readDirectoryFile(recordPathToDirectoryPath(input_path));
     // TODO: get read of iostream
@@ -36,9 +39,9 @@ void StackTraceFlowReader::read(const char* input_path) {
         if (recordStream.eof()) {
             break;
         }
-        if (sign != '+') {
-            throw ParsingError("Expected '+' in record file but found '" +
-                               std::string(1, sign) + "'");
+        if (sign != CALL_SIGN) {
+            throw ParsingError("Expected '"s + CALL_SIGN + "' in record file "
+                               "but found '" + std::string(1, sign) + "'");
         }
         parseFunctionCall(recordStream, STACKTRACEFLOW_INVALID_ID);
     }
@@ -82,12 +85,11 @@ void StackTraceFlowReader::parseFunctionCall(std::ifstream &recordStream, StackT
 
     char sign;
     recordStream.read(&sign, 1);
-    // TODO: make the signs a global constant
-    while (sign == '+') {
+    while (sign == CALL_SIGN) {
         parseFunctionCall(recordStream, func_number);
         recordStream.read(&sign, 1);
     }
-    assert(sign == '-');
+    assert(sign == RET_SIGN);
     static_assert(is_same_v<uint32_t, StackTraceFlowId>);
     uint32_t exit_func_number;
     recordStream.read(reinterpret_cast<char *>(&exit_func_number), sizeof(exit_func_number));
