@@ -32,6 +32,50 @@ using namespace std;
 
 class Function;
 
+static boost::filesystem::path my_path = boost::dll::program_location();
+
+void print_translate_usage() {
+    printf(
+"\n"
+"   VISUALISATION\n"
+"\n"
+"Once you have enough data recorded, it's time to import it into Sourcetrail\n"
+"(https://github.com/CoatiSoftware/Sourcetrail/releases). To do so:\n"
+"1. Open Sourcetrail as you always do and create a new project (or edit an\n"
+"   existing one).\n"
+"2. Click 'Add source group'\n"
+"3. On the left sidebar of the newly opened window choose 'Custom', then\n"
+"   'Custom Command Source Group' and click 'Next'.\n"
+"4. In the 'Custom Command' field enter:\n"
+"   %s --translate %%{SOURCE_FILE_PATH} %%{DATABASE_FILE_PATH}\n"
+"5. In the 'Files & Directories to index' field add the 'stacktraceflow_record'\n"
+"   directory that was created during 'stacktraceflow --run ...'\n"
+"6. Click 'Next', then in the newly opened window click 'Create'\n"
+"7. You will see a dialog prompting you to start indexing. Click 'Start'\n",
+    my_path.native().c_str()
+    );
+}
+
+void print_usage() {
+    printf(
+"Welcome to stacktraceflow. To get started, run:\n"
+"\n"
+"    stacktraceflow --run PROGRAM [ ARG1 [ ARG2 [ .. ] ] ]\n"
+"\n"
+"This command will record execution of PROGRAM with the given arguments and\n"
+"write the data to the (possibly newly created) stacktraceflow_record\n"
+"subdirectory.\n"
+"\n"
+"For best results, PROGRAM should be debug version of your program. I.e., it\n"
+"should contain debug symbols, and ideally also be built without\n"
+"optimizations.\n"
+"\n"
+"This command may be ran multiple times. The recording will not get overwritten.\n"
+"\n"
+    );
+    print_translate_usage();
+}
+
 void translate(const char *stacktraceflow_input, const char *sourcetraildb_output) {
 try {
     StfToSdbTranslator translator;
@@ -68,8 +112,7 @@ void run(char *my_filename, int argc, char *argv[]) {
     boost::filesystem::create_directories("stacktraceflow_record");
 
     pid_t my_pid = getpid();
-    boost::filesystem::path my_dir =
-        boost::dll::program_location().parent_path();
+    boost::filesystem::path my_dir = my_path.parent_path();
     string valgrindPath = (my_dir / "bin" / "valgrind").native();
     boost::filesystem::path stacktraceflowPrefix =
         boost::filesystem::path("stacktraceflow_record") / 
@@ -86,25 +129,10 @@ void run(char *my_filename, int argc, char *argv[]) {
         fprintf(stderr, "The Valgrind command failed. The data recorded might "
                 "be still usable but is most likely incomplete.\n");
     } else {
-        printf("Success\n");
-        // TODO: print --translate usage
+        printf("Success. Results were written to %s\n",
+               stacktraceflowPrefix.native().c_str());
+        print_translate_usage();
     }
-}
-
-void print_usage() {
-    printf(
-"Welcome to stacktraceflow. To get started, run:\n"
-"\n"
-"    stacktraceflow --run PROGRAM [ ARG1 [ ARG2 [ .. ] ] ]\n"
-"\n"
-"This command will record execution of PROGRAM with the given arguments and\n"
-"write the data to the (possibly newly created) stacktraceflow_record\n"
-"subdirectory.\n"
-"\n"
-"For best results, PROGRAM should be debug version of your program. I.e., it\n"
-"should contain debug symbols, and ideally also be built without\n"
-"optimizations.\n"
-    );
 }
 
 int main(int argc, char *argv[]) {
