@@ -31,7 +31,6 @@ constexpr char RET_SIGN = '-';
 
 void StackTraceFlowReader::read(const char* input_path) {
     readDirectoryFile(recordPathToDirectoryPath(input_path));
-    // TODO: get read of iostream
     std::ifstream recordStream(input_path, std::ifstream::binary | std::ifstream::in);
     while (true) {
         char sign;
