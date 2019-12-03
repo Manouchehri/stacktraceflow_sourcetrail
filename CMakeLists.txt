@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0.1)
 project(stacktraceflow)
 
 include(ExternalProject)
@@ -25,18 +25,19 @@ ExternalProject_Add(SourcetrailDB
     SOURCE_DIR ${SOURCETRAILDB_SOURCE_DIR}
     INSTALL_COMMAND ""
 )
-LINK_DIRECTORIES(${SOURCETRAILDB_LIB_DIR})
-list(APPEND EXTRA_LIBS sourcetraildb)
-list(APPEND EXTRA_INCLUDES "${SOURCETRAILDB_LIB_INCLUDE}")
+include_directories( ${SOURCETRAILDB_LIB_INCLUDE} )
+add_library(sourcetraildb SHARED IMPORTED)
+set_target_properties(sourcetraildb PROPERTIES
+    IMPORTED_LOCATION ${SOURCETRAILDB_LIB_DIR}/libsourcetraildb.a)
 
 # Boost ########################################################################
 
-FIND_PACKAGE(Boost 1.40
+find_package(Boost 1.40
     REQUIRED COMPONENTS filesystem system
 )
-INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+include_directories( ${Boost_INCLUDE_DIR} )
 
-# Target #######################################################################
+# stacktraceflow ###############################################################
 
 add_executable(stacktraceflow
     src/main.cpp
@@ -45,12 +46,12 @@ add_executable(stacktraceflow
     src/SdbWriterProxy.cpp
 )
 
-list(APPEND EXTRA_LIBS -pthread)
-list(APPEND EXTRA_LIBS -ldl)
 target_link_libraries(stacktraceflow
-    PRIVATE ${EXTRA_LIBS}
-    PRIVATE ${Boost_LIBRARIES})
-target_include_directories(stacktraceflow PRIVATE ${EXTRA_INCLUDES})
+    PRIVATE sourcetraildb
+    PRIVATE ${Boost_LIBRARIES}
+    -pthread
+    -ldl)
+
 set_target_properties(stacktraceflow PROPERTIES
     CXX_STANDARD 17
     CXX_EXTENSIONS OFF
