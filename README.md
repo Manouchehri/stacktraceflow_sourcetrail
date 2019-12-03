@@ -46,9 +46,11 @@ Once you have enough data recorded, it's time to import it into
 3. On the left sidebar of the newly opened window choose 'Custom', then
    'Custom Command Source Group' and click 'Next'.
 4. In the 'Custom Command' field enter:
-    /home/glon/Programs/tmp/build/stacktraceflow --translate %{SOURCE_FILE_PATH} %{DATABASE_FILE_PATH}
+    `<STACKTRACEFLOW_DIR>/stacktraceflow --translate %{SOURCE_FILE_PATH} %{DATABASE_FILE_PATH}`
 5. In the 'Files & Directories to index' field add the `stacktraceflow_record`
    directory that was created during `stacktraceflow --run ...`
 6. Click 'Next', then in the newly opened window click 'Create'
 7. You will see a dialog prompting you to start indexing. Click 'Start'
 
+You can also take a look at [SourcetrailDB README](https://github.com/Baranowski/SourcetrailDB#integrating-with-sourcetrail)
+for some clues.
