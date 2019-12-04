@@ -31,6 +31,8 @@ int SdbWriterProxy::getFileId(const std::string &filename) {
 
 int SdbWriterProxy::write_function(const Function& func) {
     int symbolId = writer.recordSymbol({"::", { {"", func.get_name(), ""} } });
+    writer.recordSymbolDefinitionKind(symbolId, DefinitionKind::EXPLICIT);
+
     int fileId = getFileId(func.get_def_file_path());
     writer.recordSymbolScopeLocation(
         symbolId, { fileId
