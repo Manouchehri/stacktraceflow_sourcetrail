@@ -19,10 +19,6 @@
 #include "SdbWriterProxy.h"
 #include "Function.h"
 
-#include <string_view>
-
-using namespace std;
-
 int SdbWriterProxy::getFileId(const std::string &filename) {
     auto it = fileToId.find(filename);
     if (it != fileToId.end()) {
@@ -34,16 +30,7 @@ int SdbWriterProxy::getFileId(const std::string &filename) {
 }
 
 int SdbWriterProxy::write_function(const Function& func) {
-    string prefix, stripped_name;
-    size_t delim_pos = func.get_name().rfind("::");
-    if (delim_pos == string::npos) {
-        stripped_name = func.get_name();
-    } else {
-        prefix = func.get_name().substr(0, delim_pos);
-        stripped_name = func.get_name().substr(delim_pos + "::"sv.size());
-    }
-
-    int symbolId = writer.recordSymbol({"::", { {prefix, stripped_name, ""} } });
+    int symbolId = writer.recordSymbol({"::", { {"", func.get_name(), ""} } });
     int fileId = getFileId(func.get_def_file_path());
     writer.recordSymbolScopeLocation(
         symbolId, { fileId
