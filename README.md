@@ -5,6 +5,18 @@
 of software written in any language, as long as it's compiled to ELF/DWARF
 format.
 
+# Demo
+
+[7m video hosted on Streamable](https://streamable.com/gvn9o)
+
+As an example, it shows how to build visualisation for the
+[parity-ethereum](https://github.com/paritytech/parity-ethereum/) project,
+written in Rust.
+
+Forward to 1m15s to see the visualisation.
+
+Forward to 3m30s to see how to quickly generate data.
+
 # Building
 
 ```
@@ -54,3 +66,17 @@ Once you have enough data recorded, it's time to import it into
 
 You can also take a look at [SourcetrailDB README](https://github.com/Baranowski/SourcetrailDB#integrating-with-sourcetrail)
 for some clues.
+
+# Limitations
+
+* This has been tested on Linux only so far. In principle, it should be
+  reasonably easy to support also MacOS and Windows, but I don't own those
+  systems and so couldn't test.
+* Currently only single process can be monitored. If your program forks, the
+  children will be ignored. (This does not apply to threads - all threads are
+  monitored.)
+* Mapping symbols to source code locations works only on the level of line
+  numbers. If you want to click a function definition in Sourcetrail's Code
+  View, you have to click on the first character of the first line of
+  definition.
+
