@@ -1,9 +1,17 @@
 # Introduction
 
 `stacktraceflow` combines the power of [Valgrind](https://valgrind.org/) and
-[Sourcetrail](https://www.sourcetrail.com/) to visualize internal interactions
-of software written in any language, as long as it's compiled to ELF/DWARF
-format.
+[Sourcetrail](https://www.sourcetrail.com/) to quickly produce interactive
+callgraph of software written in any language, as long as it's compiled to
+ELF/DWARF format.
+
+The basic workflow is this:
+* You run your software as you always do, but prepending `stacktraceflow --run`
+  on the command line.
+* Afterwards you open the generated data in Sourcetrail, which shows interactive
+  callgraph of all the functions that were called during the execution,
+  including those in external libraries. It also shows you the corresponding
+  parts of the source code as you navigate the callgraph.
 
 # Demo
 
